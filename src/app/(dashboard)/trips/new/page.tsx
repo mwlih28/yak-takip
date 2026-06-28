@@ -153,7 +153,11 @@ export default function NewTripPage() {
           ) : (
             <Select value={vehicleId} onValueChange={(v) => v && setVehicleId(v)}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue>
+                  {vehicleId
+                    ? (() => { const v = vehicles.find((x) => x.id === vehicleId); return v ? `${v.year} ${v.brand} ${v.model}` : "Araç seçin" })()
+                    : "Araç seçin"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {vehicles.map((v) => (

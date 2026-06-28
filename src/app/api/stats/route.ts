@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { getUser } from "@/lib/mobile-auth"
 import { db } from "@/db"
 import { trips } from "@/db/schema"
 import { eq, and, gte } from "drizzle-orm"
 
 export async function GET(req: Request) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getUser(req)
+  if (!user?.id) {
     return NextResponse.json({ error: "Yetkisiz." }, { status: 401 })
   }
 
-  const userId = session.user.id
+  const userId = user.id
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 

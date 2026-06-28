@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { getUser } from "@/lib/mobile-auth"
 import { db } from "@/db"
 import { trips, vehicles, users } from "@/db/schema"
 import { eq, and, desc, count } from "drizzle-orm"
@@ -16,8 +16,8 @@ const startTripSchema = z.object({
 })
 
 export async function GET(req: Request) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getUser(req)
+  if (!user?.id) {
     return NextResponse.json({ error: "Yetkisiz." }, { status: 401 })
   }
 
@@ -27,8 +27,8 @@ export async function GET(req: Request) {
   const vehicleId = searchParams.get("vehicleId")
 
   const conditions = vehicleId
-    ? and(eq(trips.userId, session.user.id), eq(trips.vehicleId, vehicleId))
-    : eq(trips.userId, session.user.id)
+    ? and(eq(trips.userId, user.id), eq(trips.vehicleId, vehicleId))
+    : eq(trips.userId, user.id)
 
   const [tripRows, [{ value: total }]] = await Promise.all([
     db
@@ -75,8 +75,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getUser(req)
+  if (!user?.id) {
     return NextResponse.json({ error: "Yetkisiz." }, { status: 401 })
   }
 
@@ -87,23 +87,23 @@ export async function POST(req: Request) {
     const [vehicle] = await db
       .select()
       .from(vehicles)
-      .where(and(eq(vehicles.id, data.vehicleId), eq(vehicles.userId, session.user.id)))
+      .where(and(eq(vehicles.id, data.vehicleId), eq(vehicles.userId, user.id)))
       .limit(1)
 
     if (!vehicle) {
       return NextResponse.json({ error: "Araç bulunamadı." }, { status: 404 })
     }
 
-    const [user] = await db
+    const [userRow] = await db
       .select({ fuelPrice: users.fuelPrice })
       .from(users)
-      .where(eq(users.id, session.user.id))
+      .where(eq(users.id, user.id))
       .limit(1)
 
     const [trip] = await db
       .insert(trips)
       .values({
-        userId: session.user.id,
+        userId: user.id,
         vehicleId: data.vehicleId,
         startGaugePercent: data.startGaugePercent,
         startGaugeUrl: data.startGaugeUrl,
@@ -112,7 +112,7 @@ export async function POST(req: Request) {
         startLng: data.startLng,
         startOdometer: data.startOdometer,
         startTime: new Date(),
-        fuelPricePerLiter: user?.fuelPrice,
+        fuelPricePerLiter: userRow?.fuelPrice,
         status: "IN_PROGRESS",
       })
       .returning()

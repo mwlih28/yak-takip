@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { getUser } from "@/lib/mobile-auth"
 import { db } from "@/db"
 import { vehicles, trips } from "@/db/schema"
 import { eq, and, count, desc, asc } from "drizzle-orm"
@@ -17,8 +17,8 @@ const vehicleSchema = z.object({
 })
 
 export async function GET(req: Request) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getUser(req)
+  if (!user?.id) {
     return NextResponse.json({ error: "Yetkisiz." }, { status: 401 })
   }
 
@@ -40,7 +40,7 @@ export async function GET(req: Request) {
     })
     .from(vehicles)
     .leftJoin(trips, eq(trips.vehicleId, vehicles.id))
-    .where(eq(vehicles.userId, session.user.id))
+    .where(eq(vehicles.userId, user.id))
     .groupBy(vehicles.id)
     .orderBy(desc(vehicles.isDefault), asc(vehicles.createdAt))
 
@@ -48,8 +48,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getUser(req)
+  if (!user?.id) {
     return NextResponse.json({ error: "Yetkisiz." }, { status: 401 })
   }
 
@@ -60,12 +60,12 @@ export async function POST(req: Request) {
     const [{ value: existingCount }] = await db
       .select({ value: count() })
       .from(vehicles)
-      .where(eq(vehicles.userId, session.user.id))
+      .where(eq(vehicles.userId, user.id))
 
     const [vehicle] = await db
       .insert(vehicles)
       .values({
-        userId: session.user.id,
+        userId: user.id,
         ...data,
         isDefault: existingCount === 0,
       })

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { getUser } from "@/lib/mobile-auth"
 import { gemini, MODEL, GAUGE_ANALYSIS_PROMPT } from "@/lib/gemini"
 
 export async function POST(req: Request) {
-  const session = await auth()
-  if (!session?.user) {
+  const user = await getUser(req)
+  if (!user) {
     return NextResponse.json({ error: "Yetkisiz erişim." }, { status: 401 })
   }
 

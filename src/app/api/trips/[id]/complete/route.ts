@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { getUser } from "@/lib/mobile-auth"
 import { db } from "@/db"
 import { trips, vehicles } from "@/db/schema"
 import { eq, and } from "drizzle-orm"
@@ -25,8 +25,8 @@ const completeSchema = z.object({
 })
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getUser(req)
+  if (!user?.id) {
     return NextResponse.json({ error: "Yetkisiz." }, { status: 401 })
   }
 
@@ -59,7 +59,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       .where(
         and(
           eq(trips.id, params.id),
-          eq(trips.userId, session.user.id),
+          eq(trips.userId, user.id),
           eq(trips.status, "IN_PROGRESS")
         )
       )
@@ -110,7 +110,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     let aiTips: string[] = []
     let aiCo2Context = ""
 
-    const currency = (session.user as any).currency ?? "TRY"
+    const currency = (user as any).currency ?? "TRY"
 
     try {
       const prompt = buildAnalysisPrompt({

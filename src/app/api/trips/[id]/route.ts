@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { getUser } from "@/lib/mobile-auth"
 import { db } from "@/db"
 import { trips, vehicles } from "@/db/schema"
 import { eq, and } from "drizzle-orm"
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getUser(req)
+  if (!user?.id) {
     return NextResponse.json({ error: "Yetkisiz." }, { status: 401 })
   }
 
@@ -56,7 +56,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     })
     .from(trips)
     .leftJoin(vehicles, eq(trips.vehicleId, vehicles.id))
-    .where(and(eq(trips.id, params.id), eq(trips.userId, session.user.id)))
+    .where(and(eq(trips.id, params.id), eq(trips.userId, user.id)))
     .limit(1)
 
   if (!trip) {
@@ -67,15 +67,15 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getUser(req)
+  if (!user?.id) {
     return NextResponse.json({ error: "Yetkisiz." }, { status: 401 })
   }
 
   const [trip] = await db
     .select({ id: trips.id })
     .from(trips)
-    .where(and(eq(trips.id, params.id), eq(trips.userId, session.user.id)))
+    .where(and(eq(trips.id, params.id), eq(trips.userId, user.id)))
     .limit(1)
 
   if (!trip) {

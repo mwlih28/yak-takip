@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { getUser } from "@/lib/mobile-auth"
 import { searchAddress } from "@/lib/maps"
 
 export async function GET(req: Request) {
-  const session = await auth()
-  if (!session?.user) {
+  const user = await getUser(req)
+  if (!user) {
     return NextResponse.json({ error: "Yetkisiz." }, { status: 401 })
   }
 
