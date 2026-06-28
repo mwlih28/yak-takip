@@ -72,7 +72,11 @@ export async function POST(req: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues[0].message }, { status: 400 })
     }
-    console.error("Register error:", error)
-    return NextResponse.json({ error: "Kayıt işlemi başarısız oldu." }, { status: 500 })
+    const msg = error instanceof Error ? error.message : String(error)
+    console.error("Register error:", msg)
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "development" ? msg : "Kayıt işlemi başarısız oldu." },
+      { status: 500 }
+    )
   }
 }
