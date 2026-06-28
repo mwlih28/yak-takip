@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LayoutDashboard, Route, Car, BarChart3, Fuel } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { motion } from "framer-motion"
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Ana Sayfa", icon: LayoutDashboard },
@@ -18,13 +19,16 @@ export default function MobileNav({ user }: { user: any }) {
   return (
     <>
       {/* Mobile Top Bar */}
-      <header
+      <motion.header
         className="md:hidden flex items-center justify-between px-4 py-3"
         style={{
-          background: "rgba(8,13,28,0.95)",
+          background: "rgba(8,13,28,0.96)",
           backdropFilter: "blur(20px)",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
       >
         <div className="flex items-center gap-2.5">
           <div
@@ -38,47 +42,64 @@ export default function MobileNav({ user }: { user: any }) {
         <div
           className="px-2.5 py-1 rounded-full text-xs font-medium"
           style={{
-            background: "rgba(255,255,255,0.08)",
+            background: "rgba(255,255,255,0.07)",
             border: "1px solid rgba(255,255,255,0.1)",
-            color: "rgba(255,255,255,0.6)",
+            color: "rgba(255,255,255,0.55)",
           }}
         >
           {user?.name?.split(" ")[0]}
         </div>
-      </header>
+      </motion.header>
 
-      {/* Mobile Bottom Nav — floating pill */}
-      <nav className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50">
+      {/* Floating pill bottom nav */}
+      <motion.nav
+        className="md:hidden fixed bottom-5 left-1/2 z-50"
+        style={{ translateX: "-50%" }}
+        initial={{ opacity: 0, y: 40, x: "-50%" }}
+        animate={{ opacity: 1, y: 0, x: "-50%" }}
+        transition={{ duration: 0.45, ease: [0.34, 1.26, 0.64, 1], delay: 0.1 }}
+      >
         <div
           className="flex items-center gap-1 px-2 py-2 rounded-2xl"
           style={{
             background: "rgba(10,15,30,0.92)",
-            backdropFilter: "blur(20px)",
+            backdropFilter: "blur(24px)",
             border: "1px solid rgba(255,255,255,0.12)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04) inset",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
           }}
         >
           {NAV_ITEMS.map((item) => {
             const active = pathname === item.href || pathname.startsWith(item.href + "/")
             return (
               <Link key={item.href} href={item.href}>
-                <div
+                <motion.div
+                  whileTap={{ scale: 0.92 }}
                   className={cn(
-                    "flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl text-xs font-medium transition-all",
-                    active ? "text-white" : "text-white/35 hover:text-white/65"
+                    "flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl text-xs font-medium transition-colors relative",
+                    active ? "text-white" : "text-white/32 hover:text-white/60"
                   )}
                   style={active ? {
-                    background: "linear-gradient(135deg, rgba(59,130,246,0.25), rgba(37,99,235,0.15))",
+                    background: "linear-gradient(135deg, rgba(59,130,246,0.22), rgba(37,99,235,0.14))",
                   } : undefined}
                 >
-                  <item.icon className={cn("h-5 w-5", active ? "text-blue-400" : "")} />
-                  <span className={cn("text-[10px]", active ? "text-blue-300" : "")}>{item.label}</span>
-                </div>
+                  {active && (
+                    <motion.div
+                      layoutId="mobileActiveIndicator"
+                      className="absolute inset-0 rounded-xl"
+                      style={{
+                        background: "linear-gradient(135deg, rgba(59,130,246,0.22), rgba(37,99,235,0.14))",
+                      }}
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <item.icon className={cn("h-5 w-5 relative z-10", active ? "text-blue-400" : "")} />
+                  <span className={cn("text-[10px] relative z-10", active ? "text-blue-300" : "")}>{item.label}</span>
+                </motion.div>
               </Link>
             )
           })}
         </div>
-      </nav>
+      </motion.nav>
     </>
   )
 }
