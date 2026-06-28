@@ -5,6 +5,7 @@ import { db } from "@/db"
 import { users } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { z } from "zod"
+import { authConfig } from "@/auth.config"
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -12,6 +13,7 @@ const loginSchema = z.object({
 })
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  ...authConfig,
   providers: [
     Credentials({
       async authorize(credentials) {
