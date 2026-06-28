@@ -28,6 +28,8 @@ export default function CompleteTripPage({ params }: { params: { id: string } })
 
   const [gaugeResult, setGaugeResult] = useState<GaugeResult | null>(null)
   const [location, setLocation] = useState("")
+  const [locationLat, setLocationLat] = useState<number | undefined>()
+  const [locationLng, setLocationLng] = useState<number | undefined>()
   const [odometer, setOdometer] = useState("")
   const [notes, setNotes] = useState("")
   const [loading, setLoading] = useState(false)
@@ -49,6 +51,8 @@ export default function CompleteTripPage({ params }: { params: { id: string } })
         endGaugePercent: gaugeResult.percentFull,
         endGaugeUrl: gaugeResult.imageUrl,
         endLocation: location,
+        endLat: locationLat,
+        endLng: locationLng,
         endOdometer: odometer ? Number(odometer) : undefined,
         notes: notes || undefined,
       }
@@ -115,7 +119,7 @@ export default function CompleteTripPage({ params }: { params: { id: string } })
         <CardContent className="space-y-3">
           <LocationPicker
             value={location}
-            onChange={(addr) => setLocation(addr)}
+            onChange={(addr, lat, lng) => { setLocation(addr); setLocationLat(lat); setLocationLng(lng) }}
             placeholder="Nereye vardınız?"
           />
           <div className="space-y-1">

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { getPlaceAutocomplete } from "@/lib/google-maps"
+import { searchAddress } from "@/lib/maps"
 
 export async function GET(req: Request) {
   const session = await auth()
@@ -15,6 +15,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ predictions: [] })
   }
 
-  const predictions = await getPlaceAutocomplete(input)
-  return NextResponse.json({ predictions })
+  const results = await searchAddress(input)
+  return NextResponse.json({ predictions: results })
 }

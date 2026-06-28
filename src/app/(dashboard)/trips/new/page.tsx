@@ -38,7 +38,8 @@ export default function NewTripPage() {
   const [vehicleId, setVehicleId] = useState("")
   const [gaugeResult, setGaugeResult] = useState<GaugeResult | null>(null)
   const [location, setLocation] = useState("")
-  const [locationPlaceId, setLocationPlaceId] = useState<string | undefined>()
+  const [locationLat, setLocationLat] = useState<number | undefined>()
+  const [locationLng, setLocationLng] = useState<number | undefined>()
   const [odometer, setOdometer] = useState("")
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -86,21 +87,13 @@ export default function NewTripPage() {
 
     setLoading(true)
     try {
-      // Koordinat al
-      let startLat: number | undefined
-      let startLng: number | undefined
-      if (locationPlaceId) {
-        const detailRes = await fetch(
-          `/api/maps/autocomplete?placeId=${locationPlaceId}`
-        ).catch(() => null)
-        // Koordinatları daha sonra complete'de de kullanabiliriz
-      }
-
       const payload = {
         vehicleId,
         startGaugePercent: gaugeResult.percentFull,
         startGaugeUrl: gaugeResult.imageUrl,
         startLocation: location,
+        startLat: locationLat,
+        startLng: locationLng,
         startOdometer: odometer ? Number(odometer) : undefined,
       }
 
@@ -194,7 +187,7 @@ export default function NewTripPage() {
         <CardContent className="space-y-3">
           <LocationPicker
             value={location}
-            onChange={(addr, pid) => { setLocation(addr); setLocationPlaceId(pid) }}
+            onChange={(addr, lat, lng) => { setLocation(addr); setLocationLat(lat); setLocationLng(lng) }}
             placeholder="Nereden çıkıyorsunuz?"
           />
           <div className="space-y-1">

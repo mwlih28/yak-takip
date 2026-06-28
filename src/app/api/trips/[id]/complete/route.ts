@@ -4,7 +4,7 @@ import { db } from "@/db"
 import { trips, vehicles } from "@/db/schema"
 import { eq, and } from "drizzle-orm"
 import { z } from "zod"
-import { getDistance } from "@/lib/google-maps"
+import { getDistance } from "@/lib/maps"
 import {
   calcFuelConsumed,
   calcEfficiency,
@@ -71,11 +71,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     const vehicle = tripRow.vehicle
 
-    // Mesafe hesapla (Google Maps)
+    // Mesafe hesapla (Haversine)
     let distanceKm: number | null = null
     if (tripRow.startLat && tripRow.startLng && data.endLat && data.endLng) {
-      const dist = await getDistance(tripRow.startLat, tripRow.startLng, data.endLat, data.endLng)
-      distanceKm = dist?.distanceKm ?? null
+      distanceKm = getDistance(tripRow.startLat, tripRow.startLng, data.endLat, data.endLng).distanceKm
     }
 
     // Odometer ile mesafe (GPS yoksa)

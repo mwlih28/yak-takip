@@ -7,11 +7,13 @@ import { MapPin, Loader2 } from "lucide-react"
 interface Prediction {
   placeId: string
   description: string
+  lat: number
+  lng: number
 }
 
 interface Props {
   value: string
-  onChange: (address: string, placeId?: string) => void
+  onChange: (address: string, lat?: number, lng?: number) => void
   placeholder?: string
   label?: string
 }
@@ -24,9 +26,7 @@ export default function LocationPicker({ value, onChange, placeholder = "Konum a
   const debounceRef = useRef<NodeJS.Timeout>()
   const containerRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    setInput(value)
-  }, [value])
+  useEffect(() => { setInput(value) }, [value])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -42,12 +42,8 @@ export default function LocationPicker({ value, onChange, placeholder = "Konum a
     setInput(v)
     onChange(v)
     setOpen(true)
-
     clearTimeout(debounceRef.current)
-    if (v.length < 2) {
-      setPredictions([])
-      return
-    }
+    if (v.length < 3) { setPredictions([]); return }
 
     debounceRef.current = setTimeout(async () => {
       setLoading(true)
@@ -60,43 +56,52 @@ export default function LocationPicker({ value, onChange, placeholder = "Konum a
       } finally {
         setLoading(false)
       }
-    }, 400)
+    }, 500)
   }
 
   function handleSelect(p: Prediction) {
     setInput(p.description)
-    onChange(p.description, p.placeId)
+    onChange(p.description, p.lat, p.lng)
     setPredictions([])
     setOpen(false)
   }
 
   return (
     <div ref={containerRef} className="relative">
-      {label && <p className="text-sm font-medium text-gray-700 mb-1.5">{label}</p>}
+      {label && <p className="text-sm font-medium text-white/60 mb-1.5">{label}</p>}
       <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none z-10" />
         <Input
           value={input}
           onChange={(e) => handleInputChange(e.target.value)}
           placeholder={placeholder}
-          className="pl-9"
-          onFocus={() => input.length >= 2 && setOpen(true)}
+          className="pl-9 h-11 text-white placeholder:text-white/25 border-0 focus-visible:ring-1 focus-visible:ring-blue-400/50"
+          style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}
+          onFocus={() => input.length >= 3 && setOpen(true)}
         />
         {loading && (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 animate-spin" />
+          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 animate-spin" />
         )}
       </div>
 
       {open && predictions.length > 0 && (
-        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 overflow-hidden">
+        <div
+          className="absolute z-50 w-full rounded-xl shadow-2xl mt-1 overflow-hidden"
+          style={{
+            background: "rgba(10,15,30,0.97)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
+        >
           {predictions.map((p) => (
             <button
               key={p.placeId}
-              className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm flex items-start gap-2 border-b last:border-0"
+              className="w-full text-left px-4 py-3 text-sm flex items-start gap-2.5 transition-colors hover:bg-white/6"
+              style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
               onClick={() => handleSelect(p)}
             >
-              <MapPin className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
-              <span>{p.description}</span>
+              <MapPin className="h-3.5 w-3.5 text-blue-400 mt-0.5 shrink-0" />
+              <span className="text-white/75 text-xs leading-relaxed">{p.description}</span>
             </button>
           ))}
         </div>
