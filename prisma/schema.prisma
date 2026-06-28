@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  countryCode  String
+  countryName  String
+  fuelPrice    Float
+  currency     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  vehicles     Vehicle[]
+  trips        Trip[]
+  sessions     Session[]
+  notifications NotificationPreference?
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// ─── Vehicle ─────────────────────────────────────────────────────────────────
+
+model Vehicle {
+  id             String    @id @default(cuid())
+  userId         String
+  brand          String
+  model          String
+  year           Int
+  fuelType       FuelType  @default(GASOLINE)
+  tankCapacity   Float
+  avgConsumption Float?
+  plateNumber    String?
+  color          String?
+  isDefault      Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trips          Trip[]
+  maintenanceLogs MaintenanceLog[]
+
+  @@map("vehicles")
+}
+
+enum FuelType {
+  GASOLINE
+  DIESEL
+  LPG
+  ELECTRIC
+  HYBRID
+}
+
+// ─── Trip ────────────────────────────────────────────────────────────────────
+
+model Trip {
+  id     String     @id @default(cuid())
+  userId String
+  vehicleId String
+  status TripStatus @default(IN_PROGRESS)
+
+  // Başlangıç verisi
+  startGaugePercent  Float?
+  startGaugeUrl      String?
+  startLocation      String?
+  startLat           Float?
+  startLng           Float?
+  startTime          DateTime?
+  startOdometer      Float?
+
+  // Bitiş verisi
+  endGaugePercent    Float?
+  endGaugeUrl        String?
+  endLocation        String?
+  endLat             Float?
+  endLng             Float?
+  endTime            DateTime?
+  endOdometer        Float?
+
+  // Hesaplanan değerler
+  distanceKm         Float?
+  fuelConsumedL      Float?
+  fuelCostLocal      Float?
+  fuelPricePerLiter  Float?
+  efficiencyKmPerL   Float?
+  co2EmittedKg       Float?
+
+  // AI analizi
+  aiSummary          String?
+  aiEfficiencyRating String?
+  aiTips             String[]
+  aiCo2Context       String?
+
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("trips")
+}
+
+enum TripStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// ─── Yakıt Fiyatları ─────────────────────────────────────────────────────────
+
+model FuelPrice {
+  id          String   @id @default(cuid())
+  countryCode String
+  countryName String
+  fuelType    FuelType @default(GASOLINE)
+  pricePerL   Float
+  currency    String
+  source      String?
+  fetchedAt   DateTime @default(now())
+
+  @@index([countryCode, fuelType])
+  @@map("fuel_prices")
+}
+
+// ─── Bakım Logu ──────────────────────────────────────────────────────────────
+
+model MaintenanceLog {
+  id          String          @id @default(cuid())
+  vehicleId   String
+  type        MaintenanceType
+  description String?
+  odometer    Int?
+  cost        Float?
+  performedAt DateTime
+  nextDueKm   Int?
+  nextDueDate DateTime?
+  createdAt   DateTime        @default(now())
+
+  vehicle     Vehicle         @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("maintenance_logs")
+}
+
+enum MaintenanceType {
+  OIL_CHANGE
+  TIRE_ROTATION
+  BRAKE_CHECK
+  AIR_FILTER
+  GENERAL_SERVICE
+  OTHER
+}
+
+// ─── Bildirim Tercihleri ──────────────────────────────────────────────────────
+
+model NotificationPreference {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  lowFuelAlertEnabled  Boolean  @default(true)
+  lowFuelThreshold     Int      @default(20)
+  maintenanceReminders Boolean  @default(true)
+  weeklyReport         Boolean  @default(true)
+  pushSubscription     Json?
+
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
