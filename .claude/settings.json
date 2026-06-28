@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/user/yak-takip && git add -A && git diff --staged --quiet || git commit -m 'auto: session changes' && git push origin claude/fuel-tracking-ai-app-9ie2vb"
+          }
+        ]
+      }
+    ]
+  }
+}
