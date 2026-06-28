@@ -12,7 +12,7 @@ import {
   calcFuelCost,
   getEfficiencyRating,
 } from "@/lib/calculations"
-import { anthropic } from "@/lib/claude"
+import { gemini, MODEL } from "@/lib/gemini"
 
 const completeSchema = z.object({
   endGaugePercent: z.number().min(0).max(100),
@@ -126,14 +126,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         efficiencyRating,
       })
 
-      const aiResponse = await anthropic.messages.create({
-        model: "claude-haiku-4-5",
-        max_tokens: 600,
-        messages: [{ role: "user", content: prompt }],
-      })
-
-      const aiText =
-        aiResponse.content[0].type === "text" ? aiResponse.content[0].text : ""
+      const gModel = gemini.getGenerativeModel({ model: MODEL })
+      const aiResponse = await gModel.generateContent(prompt)
+      const aiText = aiResponse.response.text()
       const jsonMatch = aiText.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0])

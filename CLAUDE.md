@@ -5,7 +5,7 @@
 - **Veritabanı**: PostgreSQL + Drizzle ORM (`src/db/schema.ts`, `src/db/index.ts`)
 - **Auth**: NextAuth v5 — credentials provider, JWT strateji (`src/lib/auth.ts`)
 - **UI**: Tailwind CSS + shadcn/ui base-nova stili (`@base-ui/react`)
-- **AI**: Anthropic Claude (`claude-haiku-4-5`) — gösterge analizi + sürüş analizi (`src/lib/claude.ts`)
+- **AI**: Google Gemini (`gemini-1.5-flash`) — gösterge analizi + sürüş analizi (`src/lib/gemini.ts`)
 - **Harita**: Google Maps API — server-side proxy (`src/app/api/maps/`)
 - **State**: Zustand persist (`src/store/tripStore.ts`)
 

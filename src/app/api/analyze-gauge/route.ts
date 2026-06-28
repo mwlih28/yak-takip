@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { anthropic, GAUGE_ANALYSIS_PROMPT } from "@/lib/claude"
+import { gemini, MODEL, GAUGE_ANALYSIS_PROMPT } from "@/lib/gemini"
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -22,35 +22,17 @@ export async function POST(req: Request) {
 
     const bytes = await file.arrayBuffer()
     const base64 = Buffer.from(bytes).toString("base64")
-    const mimeType = file.type as "image/jpeg" | "image/png" | "image/webp" | "image/gif"
+    const mimeType = (file.type || "image/jpeg") as "image/jpeg" | "image/png" | "image/webp"
 
-    const response = await anthropic.messages.create({
-      model: "claude-haiku-4-5",
-      max_tokens: 300,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: mimeType || "image/jpeg",
-                data: base64,
-              },
-            },
-            {
-              type: "text",
-              text: GAUGE_ANALYSIS_PROMPT,
-            },
-          ],
-        },
-      ],
-    })
+    const model = gemini.getGenerativeModel({ model: MODEL })
 
-    const text = response.content[0].type === "text" ? response.content[0].text : ""
+    const result = await model.generateContent([
+      { inlineData: { data: base64, mimeType } },
+      GAUGE_ANALYSIS_PROMPT,
+    ])
 
-    // JSON parse et
+    const text = result.response.text()
+
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
       return NextResponse.json(
