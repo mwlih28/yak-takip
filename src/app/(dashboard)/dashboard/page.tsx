@@ -4,9 +4,7 @@ import { trips, vehicles } from "@/db/schema"
 import { eq, and, desc, sum, avg, count } from "drizzle-orm"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Fuel, Route, Wallet, TrendingUp, PlusCircle, ArrowRight } from "lucide-react"
+import { Fuel, Route, Wallet, TrendingUp, PlusCircle, ArrowRight, Zap } from "lucide-react"
 import TripCard from "@/components/trips/TripCard"
 import ActiveTripBanner from "@/components/dashboard/ActiveTripBanner"
 import ConsumptionChart from "@/components/dashboard/ConsumptionChart"
@@ -88,6 +86,7 @@ export default async function DashboardPage() {
   const totalKm = parseFloat(aggregateRow?.totalKm ?? "0")
   const totalCost = parseFloat(aggregateRow?.totalCost ?? "0")
   const avgEff = aggregateRow?.avgEfficiency ? parseFloat(aggregateRow.avgEfficiency) : null
+  const currency = (session.user as any).currency ?? "TRY"
 
   const statCards = [
     {
@@ -95,91 +94,137 @@ export default async function DashboardPage() {
       value: totalCount.toString(),
       unit: "sürüş",
       icon: Route,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
+      gradient: "linear-gradient(135deg, rgba(59,130,246,0.18), rgba(37,99,235,0.1))",
+      border: "rgba(59,130,246,0.2)",
+      iconColor: "#60a5fa",
+      glow: "rgba(59,130,246,0.12)",
     },
     {
       label: "Toplam Mesafe",
       value: Math.round(totalKm).toLocaleString("tr-TR"),
       unit: "km",
-      icon: Route,
-      color: "text-purple-600",
-      bg: "bg-purple-50",
+      icon: Zap,
+      gradient: "linear-gradient(135deg, rgba(139,92,246,0.18), rgba(109,40,217,0.1))",
+      border: "rgba(139,92,246,0.2)",
+      iconColor: "#a78bfa",
+      glow: "rgba(139,92,246,0.12)",
     },
     {
       label: "Yakıt Harcama",
       value: totalCost.toFixed(0),
-      unit: (session.user as any).currency ?? "TRY",
+      unit: currency,
       icon: Wallet,
-      color: "text-green-600",
-      bg: "bg-green-50",
+      gradient: "linear-gradient(135deg, rgba(16,185,129,0.18), rgba(5,150,105,0.1))",
+      border: "rgba(16,185,129,0.2)",
+      iconColor: "#34d399",
+      glow: "rgba(16,185,129,0.12)",
     },
     {
-      label: "Ort. Verimlilik",
+      label: "Ort. Tüketim",
       value: avgEff ? (100 / avgEff).toFixed(1) : "—",
       unit: "L/100km",
       icon: TrendingUp,
-      color: "text-orange-600",
-      bg: "bg-orange-50",
+      gradient: "linear-gradient(135deg, rgba(251,146,60,0.18), rgba(234,88,12,0.1))",
+      border: "rgba(251,146,60,0.2)",
+      iconColor: "#fb923c",
+      glow: "rgba(251,146,60,0.12)",
     },
   ]
 
   return (
-    <div className="space-y-6 pb-20 md:pb-0">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 pb-24 md:pb-0">
+      {/* Header */}
+      <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Merhaba, {session.user.name?.split(" ")[0]} 👋</h1>
-          <p className="text-muted-foreground text-sm mt-1">Yakıt takip özetiniz burada.</p>
+          <h1 className="text-2xl font-bold text-white">
+            Merhaba, {session.user.name?.split(" ")[0]}
+          </h1>
+          <p className="text-white/35 text-sm mt-1">Yakıt takip özetiniz hazır.</p>
         </div>
         {!activeTrip && (
           <Link href="/trips/new">
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
+            <button
+              className="hidden md:flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold text-white"
+              style={{
+                background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                boxShadow: "0 4px 14px rgba(59,130,246,0.35)",
+              }}
+            >
+              <PlusCircle className="h-4 w-4" />
               Sürüş Başlat
-            </Button>
+            </button>
           </Link>
         )}
       </div>
 
       {activeTrip && <ActiveTripBanner trip={activeTrip} />}
 
+      {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {statCards.map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="pt-4 pb-3">
-              <div className={`inline-flex p-2 rounded-lg ${stat.bg} mb-2`}>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
-              </div>
-              <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-xs text-muted-foreground">{stat.unit}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
-            </CardContent>
-          </Card>
+          <div
+            key={stat.label}
+            className="rounded-2xl p-4"
+            style={{
+              background: stat.gradient,
+              border: `1px solid ${stat.border}`,
+              boxShadow: `0 4px 20px ${stat.glow}`,
+            }}
+          >
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center mb-3"
+              style={{ background: "rgba(255,255,255,0.08)" }}
+            >
+              <stat.icon className="h-4 w-4" style={{ color: stat.iconColor }} />
+            </div>
+            <p className="text-2xl font-bold text-white">{stat.value}</p>
+            <p className="text-xs font-medium mt-0.5" style={{ color: stat.iconColor }}>{stat.unit}</p>
+            <p className="text-xs text-white/35 mt-1">{stat.label}</p>
+          </div>
         ))}
       </div>
 
       <ConsumptionChart />
 
+      {/* Recent trips */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold">Son Sürüşler</h2>
+          <h2 className="font-semibold text-white">Son Sürüşler</h2>
           <Link href="/trips">
-            <Button variant="ghost" size="sm" className="gap-1">
+            <button className="flex items-center gap-1 text-sm text-white/40 hover:text-white/70 transition-colors">
               Tümü
-              <ArrowRight className="h-3 w-3" />
-            </Button>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
           </Link>
         </div>
+
         {recentTrips.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Fuel className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 mb-4">Henüz sürüş kaydınız yok.</p>
-              <Link href="/trips/new">
-                <Button>İlk Sürüşünü Başlat</Button>
-              </Link>
-            </CardContent>
-          </Card>
+          <div
+            className="rounded-2xl py-14 text-center"
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.07)",
+            }}
+          >
+            <div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.15)" }}
+            >
+              <Fuel className="h-7 w-7 text-blue-400" />
+            </div>
+            <p className="text-white/40 text-sm mb-5">Henüz sürüş kaydınız yok.</p>
+            <Link href="/trips/new">
+              <button
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
+                style={{
+                  background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                  boxShadow: "0 4px 14px rgba(59,130,246,0.3)",
+                }}
+              >
+                İlk Sürüşünü Başlat
+              </button>
+            </Link>
+          </div>
         ) : (
           <div className="space-y-3">
             {recentTrips.map((trip) => (

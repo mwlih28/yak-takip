@@ -4,14 +4,12 @@ import { useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Loader2, CheckCircle, ChevronRight, ChevronLeft, Fuel, MapPin, Car } from "lucide-react"
+import { Loader2, ChevronRight, ChevronLeft, User, Mail, Lock, MapPin, Car, Gauge, Check } from "lucide-react"
 import { COUNTRIES } from "@/lib/countries"
 
 const CAR_BRANDS = [
@@ -45,10 +43,13 @@ interface FormData {
 }
 
 const STEPS = [
-  { title: "Hesap Bilgileri", icon: CheckCircle },
-  { title: "Ülke & Yakıt", icon: MapPin },
-  { title: "Araç Bilgileri", icon: Car },
+  { title: "Hesap Bilgileri", icon: User, desc: "Ad, e-posta ve şifrenizi girin" },
+  { title: "Ülke & Yakıt", icon: MapPin, desc: "Ülkenizi seçin, fiyat otomatik gelir" },
+  { title: "Araç Bilgileri", icon: Car, desc: "Aracınızı kaydedin" },
 ]
+
+const inputClass = "bg-white/8 border-white/10 text-white placeholder:text-white/25 focus:border-blue-400/60 focus:bg-white/12 h-11"
+const labelClass = "text-white/60 text-xs font-medium uppercase tracking-wider"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -156,74 +157,72 @@ export default function RegisterPage() {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <div className="space-y-5">
+      {/* Step header */}
+      <div>
         <div className="flex items-center gap-2 mb-4">
           {STEPS.map((s, i) => (
-            <div key={i} className="flex items-center gap-1">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                  i === step
-                    ? "bg-blue-600 text-white"
-                    : i < step
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-500"
-                }`}
-              >
-                {i < step ? "✓" : i + 1}
+            <div key={i} className="flex items-center gap-2 flex-1">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shrink-0 ${
+                i < step
+                  ? "bg-green-500 text-white"
+                  : i === step
+                  ? "bg-blue-500 text-white shadow-lg shadow-blue-500/40"
+                  : "bg-white/10 text-white/30"
+              }`}>
+                {i < step ? <Check className="h-3.5 w-3.5" /> : i + 1}
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`h-0.5 w-8 ${i < step ? "bg-green-500" : "bg-gray-200"}`} />
+                <div className={`h-px flex-1 transition-all ${i < step ? "bg-green-500/50" : "bg-white/10"}`} />
               )}
             </div>
           ))}
         </div>
-        <CardTitle>{STEPS[step].title}</CardTitle>
-        <CardDescription>
-          {step === 0 && "Hesap bilgilerinizi girin."}
-          {step === 1 && "Bulunduğunuz ülkeyi seçin, yakıt fiyatı otomatik doldurulacak."}
-          {step === 2 && "Aracınızın bilgilerini girin."}
-        </CardDescription>
-      </CardHeader>
+        <h2 className="text-lg font-semibold text-white">{STEPS[step].title}</h2>
+        <p className="text-white/35 text-sm">{STEPS[step].desc}</p>
+      </div>
 
-      <CardContent className="space-y-4">
-        {step === 0 && (
-          <>
-            <div className="space-y-2">
-              <Label>Ad Soyad</Label>
-              <Input
-                placeholder="Ahmet Yılmaz"
-                value={form.name}
+      {/* Step 0 — Hesap */}
+      {step === 0 && (
+        <div className="space-y-3">
+          <div>
+            <Label className={labelClass}>Ad Soyad</Label>
+            <div className="relative mt-1.5">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
+              <Input placeholder="Ahmet Yılmaz" value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
+                className={`${inputClass} pl-10`} />
             </div>
-            <div className="space-y-2">
-              <Label>E-posta</Label>
-              <Input
-                type="email"
-                placeholder="ornek@mail.com"
-                value={form.email}
+          </div>
+          <div>
+            <Label className={labelClass}>E-posta</Label>
+            <div className="relative mt-1.5">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
+              <Input type="email" placeholder="ornek@mail.com" value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-              />
+                className={`${inputClass} pl-10`} />
             </div>
-            <div className="space-y-2">
-              <Label>Şifre</Label>
-              <Input
-                type="password"
-                placeholder="En az 6 karakter"
-                value={form.password}
+          </div>
+          <div>
+            <Label className={labelClass}>Şifre</Label>
+            <div className="relative mt-1.5">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
+              <Input type="password" placeholder="En az 6 karakter" value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-              />
+                className={`${inputClass} pl-10`} />
             </div>
-          </>
-        )}
+          </div>
+        </div>
+      )}
 
-        {step === 1 && (
-          <>
-            <div className="space-y-2">
-              <Label>Ülke</Label>
+      {/* Step 1 — Ülke & Yakıt */}
+      {step === 1 && (
+        <div className="space-y-3">
+          <div>
+            <Label className={labelClass}>Ülke</Label>
+            <div className="mt-1.5">
               <Select value={form.countryCode} onValueChange={handleCountryChange}>
-                <SelectTrigger>
+                <SelectTrigger className={`${inputClass} w-full`}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
@@ -235,158 +234,132 @@ export default function RegisterPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                Benzin Fiyatı (litre)
-                {fetchingPrice && (
-                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                )}
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={form.fuelPrice}
-                  onChange={(e) => setForm({ ...form, fuelPrice: Number(e.target.value) })}
-                />
-                <Badge variant="secondary" className="shrink-0 h-10 px-3">
-                  {form.currency}
-                </Badge>
+          </div>
+          <div>
+            <Label className={`${labelClass} flex items-center gap-2`}>
+              Benzin Fiyatı (litre başına)
+              {fetchingPrice && <Loader2 className="h-3 w-3 animate-spin" />}
+            </Label>
+            <div className="flex gap-2 mt-1.5">
+              <Input type="number" step="0.01" value={form.fuelPrice}
+                onChange={(e) => setForm({ ...form, fuelPrice: Number(e.target.value) })}
+                className={inputClass} />
+              <div className="flex items-center justify-center px-4 rounded-lg bg-white/10 border border-white/10 text-white/60 text-sm font-medium shrink-0">
+                {form.currency}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Seçtiğiniz ülkenin güncel yakıt fiyatı otomatik dolduruldu. Düzenleyebilirsiniz.
-              </p>
             </div>
-          </>
-        )}
+            <p className="text-white/25 text-xs mt-1.5">Güncel fiyat otomatik dolduruldu, düzenleyebilirsiniz.</p>
+          </div>
+        </div>
+      )}
 
-        {step === 2 && (
-          <>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Marka</Label>
-                <Select
-                  value={form.vehicle.brand}
-                  onValueChange={(v) => v && setForm({ ...form, vehicle: { ...form.vehicle, brand: v } })}
-                >
-                  <SelectTrigger>
+      {/* Step 2 — Araç */}
+      {step === 2 && (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className={labelClass}>Marka</Label>
+              <div className="mt-1.5">
+                <Select value={form.vehicle.brand}
+                  onValueChange={(v) => v && setForm({ ...form, vehicle: { ...form.vehicle, brand: v } })}>
+                  <SelectTrigger className={`${inputClass} w-full`}>
                     <SelectValue placeholder="Seçin" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    {CAR_BRANDS.map((b) => (
-                      <SelectItem key={b} value={b}>{b}</SelectItem>
-                    ))}
+                  <SelectContent className="max-h-52">
+                    {CAR_BRANDS.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Model</Label>
-                <Input
-                  placeholder="Corolla, Golf..."
-                  value={form.vehicle.model}
-                  onChange={(e) => setForm({ ...form, vehicle: { ...form.vehicle, model: e.target.value } })}
-                />
-              </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Yıl</Label>
-                <Input
-                  type="number"
-                  min={1990}
-                  max={new Date().getFullYear() + 1}
-                  value={form.vehicle.year}
-                  onChange={(e) => setForm({ ...form, vehicle: { ...form.vehicle, year: Number(e.target.value) } })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Yakıt Tipi</Label>
-                <Select
-                  value={form.vehicle.fuelType}
-                  onValueChange={(v) => v && setForm({ ...form, vehicle: { ...form.vehicle, fuelType: v } })}
-                >
-                  <SelectTrigger>
+            <div>
+              <Label className={labelClass}>Model</Label>
+              <Input placeholder="Corolla" value={form.vehicle.model}
+                onChange={(e) => setForm({ ...form, vehicle: { ...form.vehicle, model: e.target.value } })}
+                className={`${inputClass} mt-1.5`} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className={labelClass}>Yıl</Label>
+              <Input type="number" min={1990} max={new Date().getFullYear() + 1}
+                value={form.vehicle.year}
+                onChange={(e) => setForm({ ...form, vehicle: { ...form.vehicle, year: Number(e.target.value) } })}
+                className={`${inputClass} mt-1.5`} />
+            </div>
+            <div>
+              <Label className={labelClass}>Yakıt Tipi</Label>
+              <div className="mt-1.5">
+                <Select value={form.vehicle.fuelType}
+                  onValueChange={(v) => v && setForm({ ...form, vehicle: { ...form.vehicle, fuelType: v } })}>
+                  <SelectTrigger className={`${inputClass} w-full`}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="GASOLINE">Benzin</SelectItem>
-                    <SelectItem value="DIESEL">Dizel</SelectItem>
-                    <SelectItem value="LPG">LPG</SelectItem>
-                    <SelectItem value="HYBRID">Hibrit</SelectItem>
-                    <SelectItem value="ELECTRIC">Elektrik</SelectItem>
+                    <SelectItem value="GASOLINE">⛽ Benzin</SelectItem>
+                    <SelectItem value="DIESEL">🛢️ Dizel</SelectItem>
+                    <SelectItem value="LPG">🔵 LPG</SelectItem>
+                    <SelectItem value="HYBRID">🍃 Hibrit</SelectItem>
+                    <SelectItem value="ELECTRIC">⚡ Elektrik</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Depo Kapasitesi (L)</Label>
-                <Input
-                  type="number"
-                  min={10}
-                  max={200}
-                  value={form.vehicle.tankCapacity}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className={labelClass}>Depo (L)</Label>
+              <div className="relative mt-1.5">
+                <Gauge className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
+                <Input type="number" min={10} max={200} value={form.vehicle.tankCapacity}
                   onChange={(e) => setForm({ ...form, vehicle: { ...form.vehicle, tankCapacity: Number(e.target.value) } })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Ort. Tüketim L/100km <span className="text-muted-foreground">(opsiyonel)</span></Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  placeholder="6.5"
-                  value={form.vehicle.avgConsumption}
-                  onChange={(e) => setForm({ ...form, vehicle: { ...form.vehicle, avgConsumption: e.target.value } })}
-                />
+                  className={`${inputClass} pl-10`} />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Plaka <span className="text-muted-foreground">(opsiyonel)</span></Label>
-              <Input
-                placeholder="34 ABC 123"
-                value={form.vehicle.plateNumber}
-                onChange={(e) => setForm({ ...form, vehicle: { ...form.vehicle, plateNumber: e.target.value } })}
-              />
+            <div>
+              <Label className={labelClass}>Tüketim L/100km <span className="text-white/20 normal-case">(opsiyonel)</span></Label>
+              <Input type="number" step="0.1" placeholder="6.5" value={form.vehicle.avgConsumption}
+                onChange={(e) => setForm({ ...form, vehicle: { ...form.vehicle, avgConsumption: e.target.value } })}
+                className={`${inputClass} mt-1.5`} />
             </div>
-          </>
-        )}
-      </CardContent>
-
-      <CardFooter className="flex flex-col gap-3">
-        <div className="flex gap-2 w-full">
-          {step > 0 && (
-            <Button variant="outline" onClick={() => setStep(step - 1)} className="flex-1">
-              <ChevronLeft className="mr-1 h-4 w-4" />
-              Geri
-            </Button>
-          )}
-          {step < STEPS.length - 1 ? (
-            <Button
-              onClick={() => setStep(step + 1)}
-              className="flex-1"
-              disabled={!canNext()}
-            >
-              Devam Et
-              <ChevronRight className="ml-1 h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              onClick={handleSubmit}
-              className="flex-1"
-              disabled={loading || !canNext()}
-            >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Kayıt Ol
-            </Button>
-          )}
+          </div>
+          <div>
+            <Label className={labelClass}>Plaka <span className="text-white/20 normal-case">(opsiyonel)</span></Label>
+            <Input placeholder="34 ABC 123" value={form.vehicle.plateNumber}
+              onChange={(e) => setForm({ ...form, vehicle: { ...form.vehicle, plateNumber: e.target.value } })}
+              className={`${inputClass} mt-1.5`} />
+          </div>
         </div>
-        <p className="text-sm text-muted-foreground text-center">
-          Zaten hesabınız var mı?{" "}
-          <Link href="/login" className="text-blue-600 hover:underline font-medium">
-            Giriş Yap
-          </Link>
-        </p>
-      </CardFooter>
-    </Card>
+      )}
+
+      {/* Actions */}
+      <div className="flex gap-2 pt-1">
+        {step > 0 && (
+          <Button variant="outline" onClick={() => setStep(step - 1)}
+            className="flex-1 h-11 bg-white/5 border-white/10 text-white hover:bg-white/10">
+            <ChevronLeft className="h-4 w-4 mr-1" /> Geri
+          </Button>
+        )}
+        {step < STEPS.length - 1 ? (
+          <Button onClick={() => setStep(step + 1)} className="flex-1 h-11 font-semibold text-white"
+            disabled={!canNext()}
+            style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)", boxShadow: "0 4px 16px rgba(59,130,246,0.35)" }}>
+            Devam Et <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        ) : (
+          <Button onClick={handleSubmit} className="flex-1 h-11 font-semibold text-white"
+            disabled={loading || !canNext()}
+            style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 4px 16px rgba(16,185,129,0.35)" }}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "✓ Hesap Oluştur"}
+          </Button>
+        )}
+      </div>
+
+      <p className="text-center text-sm text-white/35">
+        Zaten hesabınız var mı?{" "}
+        <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+          Giriş Yap
+        </Link>
+      </p>
+    </div>
   )
 }
