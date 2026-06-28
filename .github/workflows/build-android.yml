@@ -5,7 +5,8 @@ on:
     branches: [claude/fuel-tracking-ai-app-9ie2vb, main]
     paths:
       - 'mobile/**'
-  workflow_dispatch:   # Elle de tetiklenebilir
+      - '.github/workflows/build-android.yml'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -26,6 +27,18 @@ jobs:
         with:
           flutter-version: '3.22.0'
           channel: stable
+          cache: true
+
+      - name: Flutter ile boş proje oluştur
+        run: |
+          flutter create --org com.yakittakip --project-name yak_takip /tmp/flutter_skeleton
+          echo "Boş proje oluşturuldu"
+
+      - name: Android iskeletini kopyala
+        run: |
+          # Boş projedeki Android iskeletini mobile/ içine kopyala
+          cp -r /tmp/flutter_skeleton/android /home/runner/work/yak-takip/yak-takip/mobile/
+          echo "Android iskelet kopyalandı"
 
       - name: Bağımlılıkları indir
         working-directory: mobile
@@ -35,9 +48,9 @@ jobs:
         working-directory: mobile
         run: flutter build apk --release --no-tree-shake-icons
 
-      - name: APK'yı artifact olarak yükle
+      - name: APK artifact yükle
         uses: actions/upload-artifact@v4
         with:
-          name: yak-takip-${{ github.sha }}
+          name: yak-takip-${{ github.run_number }}
           path: mobile/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
